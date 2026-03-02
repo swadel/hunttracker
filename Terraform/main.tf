@@ -26,3 +26,33 @@ resource "google_artifact_registry_repository" "repo" {
 
   depends_on = [google_project_service.artifact_registry]  # <-- wait for API to be enabled
 }
+
+# Deploy to Cloud Run
+	resource "google_project_service" "cloud_run" {
+  service = "run.googleapis.com"
+}
+
+	resource "google_cloud_run_v2_service" "app" {
+  name     = "my-node-app"
+  location = var.region
+
+	  template {
+    containers {
+      image = "us-central1-docker.pkg.dev/${var.project_id}/${var.repository_name}/my-node-app:latest"
+
+	      ports {
+        container_port = 3000
+      }
+    }
+  }
+
+  depends_on = [google_project_service.cloud_run]
+}
+
+# Make the app publicly accessible
+resource "google_cloud_run_v2_service_iam_member" "public" {
+  name     = google_cloud_run_v2_service.app.name
+  location = var.region
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
