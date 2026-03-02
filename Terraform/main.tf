@@ -33,12 +33,12 @@ resource "google_artifact_registry_repository" "repo" {
 }
 
 	resource "google_cloud_run_v2_service" "app" {
-  name     = "my-node-app"
+  name     = "hunttracker"
   location = var.region
 
 	  template {
     containers {
-      image = "us-central1-docker.pkg.dev/${var.project_id}/${var.repository_name}/my-node-app:latest"
+      image = "us-central1-docker.pkg.dev/${var.project_id}/${var.repository_name}/hunttracker:latest"
 
 	      ports {
         container_port = 3000
