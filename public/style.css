@@ -1,0 +1,302 @@
+/* Hunt Tracker — earthy outdoors theme */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green-dark:  #2d4a22;
+  --green-mid:   #4a7c3f;
+  --green-light: #7aab6c;
+  --brown-dark:  #5c3d1e;
+  --brown-mid:   #8b6340;
+  --brown-light: #c4a882;
+  --cream:       #f5f0e8;
+  --white:       #ffffff;
+  --danger:      #c0392b;
+  --shadow:      rgba(0,0,0,0.15);
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--brown-dark);
+  min-height: 100vh;
+}
+
+/* ── Nav ── */
+nav {
+  background: var(--green-dark);
+  color: var(--cream);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 56px;
+  box-shadow: 0 2px 6px var(--shadow);
+}
+
+nav .brand {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--brown-light);
+  text-decoration: none;
+}
+
+nav a {
+  color: var(--cream);
+  text-decoration: none;
+  font-size: 0.95rem;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+nav a:hover { opacity: 1; }
+
+/* ── Layout ── */
+.container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1.25rem;
+}
+
+/* ── Stats banner ── */
+.stats-banner {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: var(--green-dark);
+  color: var(--cream);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  flex: 1;
+  min-width: 140px;
+  text-align: center;
+  box-shadow: 0 2px 6px var(--shadow);
+}
+
+.stat-card .number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--brown-light);
+  display: block;
+}
+
+.stat-card .label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter 0.15s;
+}
+.btn:hover { filter: brightness(1.1); }
+
+.btn-primary  { background: var(--green-mid);  color: var(--white); }
+.btn-edit     { background: var(--brown-mid);  color: var(--white); }
+.btn-danger   { background: var(--danger);     color: var(--white); }
+.btn-secondary{ background: var(--brown-light);color: var(--brown-dark); }
+.btn-add      { background: var(--green-light); color: var(--green-dark); }
+
+/* ── Page header ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  color: var(--green-dark);
+}
+
+/* ── Hunt table ── */
+.hunt-table-wrap {
+  background: var(--white);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--shadow);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  background: var(--green-dark);
+  color: var(--brown-light);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e8e0d4;
+  transition: background 0.1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #faf7f2; }
+
+tbody td {
+  padding: 0.75rem 1rem;
+  font-size: 0.93rem;
+  vertical-align: middle;
+}
+
+.sighting-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.sighting-badge {
+  background: var(--green-light);
+  color: var(--green-dark);
+  border-radius: 20px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.actions { display: flex; gap: 0.5rem; }
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--brown-mid);
+}
+
+/* ── Form ── */
+.form-card {
+  background: var(--white);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--shadow);
+  padding: 2rem;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.form-card h1 {
+  color: var(--green-dark);
+  margin-bottom: 1.5rem;
+  font-size: 1.4rem;
+}
+
+.form-group {
+  margin-bottom: 1.1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--brown-dark);
+  margin-bottom: 0.3rem;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid var(--brown-light);
+  border-radius: 5px;
+  font-size: 0.93rem;
+  font-family: inherit;
+  background: var(--cream);
+  color: var(--brown-dark);
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--green-mid);
+  background: var(--white);
+}
+
+textarea { resize: vertical; min-height: 80px; }
+
+/* ── Animal sightings section ── */
+.sightings-section {
+  margin-top: 1.5rem;
+  border-top: 2px solid var(--brown-light);
+  padding-top: 1.25rem;
+}
+
+.sightings-section h2 {
+  font-size: 1rem;
+  color: var(--green-dark);
+  margin-bottom: 0.75rem;
+}
+
+.sighting-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.sighting-row input[type="text"]   { flex: 2; }
+.sighting-row input[type="number"] { flex: 1; min-width: 70px; }
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.btn-remove:hover { color: #922b21; }
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.75rem;
+}
+
+/* ── Misc ── */
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.alert-error   { background: #fdecea; color: var(--danger); border: 1px solid #f5c6c2; }
+.alert-success { background: #eaf4e8; color: var(--green-dark); border: 1px solid var(--green-light); }
+
+@media (max-width: 600px) {
+  .form-row { grid-template-columns: 1fr; }
+  .stats-banner { gap: 0.5rem; }
+}

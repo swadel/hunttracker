@@ -1,0 +1,10 @@
+node_modules
+.git
+.gitignore
+npm-debug.log
+.DS_Store
+
+# local DB files (keeps images smaller; remove these lines if you want DB baked in)
+*.db
+*.db-shm
+*.db-wal

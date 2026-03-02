@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hunt Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/">🦌 Hunt Tracker</a>
+  <a href="form.html">+ New Hunt</a>
+</nav>
+
+<div class="container">
+  <!-- Stats Banner -->
+  <div class="stats-banner">
+    <div class="stat-card">
+      <span class="number" id="stat-hunts">—</span>
+      <span class="label">Total Hunts</span>
+    </div>
+    <div class="stat-card">
+      <span class="number" id="stat-animals">—</span>
+      <span class="label">Animals Sighted</span>
+    </div>
+    <div class="stat-card">
+      <span class="number" id="stat-species">—</span>
+      <span class="label">Species</span>
+    </div>
+  </div>
+
+  <div id="alert-area"></div>
+
+  <div class="page-header">
+    <h1>Hunt Log</h1>
+    <a href="form.html" class="btn btn-primary">+ Add New Hunt</a>
+  </div>
+
+  <div class="hunt-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Location</th>
+          <th>Weather</th>
+          <th>Temp (°F)</th>
+          <th>Animal Sightings</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="hunt-body">
+        <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  async function loadHunts() {
+    try {
+      const res = await fetch('/api/hunts');
+      if (!res.ok) throw new Error('Failed to load hunts');
+      const hunts = await res.json();
+      renderStats(hunts);
+      renderTable(hunts);
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  }
+
+  function renderStats(hunts) {
+    const totalAnimals = hunts.reduce((sum, h) =>
+      sum + h.sightings.reduce((s2, s) => s2 + s.count, 0), 0);
+    const species = new Set(hunts.flatMap(h => h.sightings.map(s => s.animal_type.toLowerCase())));
+
+    document.getElementById('stat-hunts').textContent   = hunts.length;
+    document.getElementById('stat-animals').textContent = totalAnimals;
+    document.getElementById('stat-species').textContent = species.size;
+  }
+
+  function renderTable(hunts) {
+    const tbody = document.getElementById('hunt-body');
+    if (!hunts.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hunts logged yet. <a href="form.html">Add your first hunt!</a></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = hunts.map(hunt => {
+      const totalAnimals = hunt.sightings.reduce((s, x) => s + x.count, 0);
+      const badges = hunt.sightings.map(s =>
+        `<span class="sighting-badge">${escHtml(s.animal_type)} × ${s.count}</span>`
+      ).join('');
+
+      const dateDisplay = hunt.date
+        ? new Date(hunt.date + 'T12:00:00').toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })
+        : '—';
+
+      return `
+        <tr>
+          <td>${dateDisplay}</td>
+          <td>${escHtml(hunt.location)}</td>
+          <td>${escHtml(hunt.weather || '—')}</td>
+          <td>${hunt.temperature != null ? hunt.temperature + '°' : '—'}</td>
+          <td>
+            ${hunt.sightings.length
+              ? `<div class="sighting-list">${badges}</div>`
+              : '<span style="color:#aaa">None</span>'}
+          </td>
+          <td class="actions">
+            <a href="form.html?id=${hunt.id}" class="btn btn-edit">Edit</a>
+            <button class="btn btn-danger" onclick="deleteHunt(${hunt.id})">Delete</button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  async function deleteHunt(id) {
+    if (!confirm('Delete this hunt and all its sightings?')) return;
+    try {
+      const res = await fetch(`/api/hunts/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      showAlert('Hunt deleted.', 'success');
+      loadHunts();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  }
+
+  function showAlert(msg, type) {
+    const area = document.getElementById('alert-area');
+    area.innerHTML = `<div class="alert alert-${type}">${escHtml(msg)}</div>`;
+    setTimeout(() => { area.innerHTML = ''; }, 4000);
+  }
+
+  function escHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  loadHunts();
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hunt Form — Hunt Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/">🦌 Hunt Tracker</a>
+  <a href="/">← Back to List</a>
+</nav>
+
+<div class="container">
+  <div class="form-card">
+    <h1 id="form-title">Add Hunt</h1>
+    <div id="alert-area"></div>
+
+    <form id="hunt-form" novalidate>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="date">Date *</label>
+          <input type="date" id="date" name="date" required />
+        </div>
+        <div class="form-group">
+          <label for="location">Location *</label>
+          <input type="text" id="location" name="location" placeholder="e.g. North Ridge, Back 40" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="temperature">Temperature (°F)</label>
+          <input type="number" id="temperature" name="temperature" step="0.1" placeholder="e.g. 42" />
+        </div>
+        <div class="form-group">
+          <label for="weather">Weather</label>
+          <select id="weather" name="weather">
+            <option value="">— Select —</option>
+            <option>Sunny</option>
+            <option>Cloudy</option>
+            <option>Overcast</option>
+            <option>Rainy</option>
+            <option>Snowy</option>
+            <option>Windy</option>
+            <option>Foggy</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes" placeholder="Stand location, wind direction, moon phase…"></textarea>
+      </div>
+
+      <!-- Animal Sightings -->
+      <div class="sightings-section">
+        <h2>Animal Sightings</h2>
+        <div id="sightings-container"></div>
+        <button type="button" class="btn btn-add" id="add-sighting-btn">+ Add Animal</button>
+      </div>
+
+      <div class="form-actions">
+        <a href="/" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary" id="submit-btn">Save Hunt</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const params  = new URLSearchParams(location.search);
+  const huntId  = params.get('id');
+  const isEdit  = !!huntId;
+  let sightingCount = 0;
+
+  if (isEdit) {
+    document.getElementById('form-title').textContent = 'Edit Hunt';
+    document.getElementById('submit-btn').textContent = 'Update Hunt';
+    loadHunt(huntId);
+  }
+
+  async function loadHunt(id) {
+    try {
+      const res = await fetch(`/api/hunts/${id}`);
+      if (!res.ok) throw new Error('Hunt not found');
+      const hunt = await res.json();
+      populateForm(hunt);
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  }
+
+  function populateForm(hunt) {
+    document.getElementById('date').value        = hunt.date || '';
+    document.getElementById('location').value    = hunt.location || '';
+    document.getElementById('temperature').value = hunt.temperature != null ? hunt.temperature : '';
+    document.getElementById('weather').value     = hunt.weather || '';
+    document.getElementById('notes').value       = hunt.notes || '';
+
+    for (const s of (hunt.sightings || [])) {
+      addSightingRow(s.animal_type, s.count);
+    }
+  }
+
+  function addSightingRow(animalType = '', count = 1) {
+    const idx = sightingCount++;
+    const row = document.createElement('div');
+    row.className = 'sighting-row';
+    row.dataset.idx = idx;
+    row.innerHTML = `
+      <input type="text"   name="animal_type_${idx}" placeholder="Animal type (e.g. Whitetail Deer)" value="${escHtml(animalType)}" />
+      <input type="number" name="count_${idx}"        placeholder="Count" min="1" value="${Number(count) || 1}" />
+      <button type="button" class="btn-remove" title="Remove" onclick="this.closest('.sighting-row').remove()">✕</button>
+    `;
+    document.getElementById('sightings-container').appendChild(row);
+  }
+
+  document.getElementById('add-sighting-btn').addEventListener('click', () => addSightingRow());
+
+  document.getElementById('hunt-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const date     = document.getElementById('date').value.trim();
+    const location = document.getElementById('location').value.trim();
+    if (!date || !location) {
+      showAlert('Date and Location are required.', 'error');
+      return;
+    }
+
+    const sightings = [];
+    document.querySelectorAll('#sightings-container .sighting-row').forEach(row => {
+      const idx         = row.dataset.idx;
+      const animal_type = row.querySelector(`[name="animal_type_${idx}"]`).value.trim();
+      const count       = parseInt(row.querySelector(`[name="count_${idx}"]`).value, 10);
+      if (animal_type && count > 0) sightings.push({ animal_type, count });
+    });
+
+    const body = {
+      date,
+      location,
+      temperature: document.getElementById('temperature').value !== '' ? parseFloat(document.getElementById('temperature').value) : null,
+      weather:     document.getElementById('weather').value || null,
+      notes:       document.getElementById('notes').value.trim() || null,
+      sightings,
+    };
+
+    try {
+      const url    = isEdit ? `/api/hunts/${huntId}` : '/api/hunts';
+      const method = isEdit ? 'PUT' : 'POST';
+      const res    = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(err.error || 'Save failed');
+      }
+
+      window.location.href = '/';
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  });
+
+  function showAlert(msg, type) {
+    const area = document.getElementById('alert-area');
+    area.innerHTML = `<div class="alert alert-${type}">${escHtml(msg)}</div>`;
+  }
+
+  function escHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+</body>
+</html>
